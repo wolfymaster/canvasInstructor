@@ -1,4 +1,4 @@
-import { ValidHTTPMethod } from "./types";
+import { ValidHTTPMethod } from "./lib/canvas/types";
 
 export async function request<T, R = T[]>(method: ValidHTTPMethod, url: string, body?: any): Promise<R> {
     // Initialize an array to store all paginated results
@@ -22,6 +22,9 @@ export async function request<T, R = T[]>(method: ValidHTTPMethod, url: string, 
 
             if (!response.ok) {
                 console.error(response);
+                if(response.status === 400) {
+                    console.log('body: ', await response.json())
+                }
                 throw new Error('Failed to fetch data');
             }
 
@@ -81,10 +84,15 @@ export function objectToFormData(data: Record<string, any>, prefix = ''): URLSea
                 formData.append(`${prefix}[${key}][]`, item.toString());
             });
         } else if (value !== null && typeof value === 'object') {
+            // handle date special
+            if(value instanceof Date) {
+                formData.append(`${prefix}[${key}]`, value.toISOString());
+                return;
+            }
             // Handle nested objects recursively
             const nestedFormData = objectToFormData(value, `${prefix}[${key}]`);
             nestedFormData.forEach((value, key) => {
-                formData.append(key, value);
+                formData.append(`${prefix}[${key}]`, value);
             });
         } else {
             // Handle simple key/value pairs

@@ -139,6 +139,7 @@ export interface AssignmentsApi {
     getForUser: (courseId: string, userId: string) => Promise<Assignment[]>;
     get: (assignmentId: number, courseId: string) => Promise<Assignment>;
     update: (assignmentId: number, courseId: string, data: AssignmentUpdatedAttributes) => Promise<Assignment>;
+    groups: (courseId: string) => Promise<any>
 }
 
 export interface CoursesApi {
