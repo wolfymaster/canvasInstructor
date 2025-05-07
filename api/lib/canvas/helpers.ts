@@ -1,16 +1,16 @@
-import { ValidHTTPMethod } from "./lib/canvas/types";
+import { ValidHTTPMethod } from "./types";
 
-export async function request<T, R = T[]>(method: ValidHTTPMethod, url: string, body?: any): Promise<R> {
+export async function request<T, R = T[]>( this: { config: { baseUrl: string, token: string } }, method: ValidHTTPMethod, url: string, body?: any): Promise<R> {
     // Initialize an array to store all paginated results
     let allResults: T[] = [];
     // Keep track of the next URL to fetch
-    let nextUrl: string | null = joinUrl(this.baseUrl, url);
+    let nextUrl: string | null = joinUrl(this.config.baseUrl, url);
     let firstResponse: any = null;
 
     while (nextUrl) {
         const options = {
             method,
-            headers: { Authorization: `Bearer ${this.token}` },
+            headers: { Authorization: `Bearer ${this.config.token}` },
         };
 
         if (body) {

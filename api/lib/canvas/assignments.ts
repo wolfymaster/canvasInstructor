@@ -1,5 +1,5 @@
-import { AssignmentUpdatedAttributes, Client } from "../types";
-import { objectToFormData } from "../helpers";
+import { AssignmentUpdatedAttributes, Client } from "./types";
+import { objectToFormData } from "./helpers";
 
 export const assignmentsApi = (client: Client) => ({
     getAll: (courseId: string) => client.request('get', `courses/${courseId}/assignments`),

@@ -1,4 +1,0 @@
-{"level":"info","message":"Server is running on port 3000","service":"canvas-instructor-api","timestamp":"2025-05-07T20:44:38.290Z"}
-{"level":"info","message":"Root endpoint accessed","service":"canvas-instructor-api","timestamp":"2025-05-07T20:44:44.797Z"}
-{"level":"info","message":"::1 - - [07/May/2025:20:44:44 +0000] \"GET / HTTP/1.1\" 200 32 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\"","service":"canvas-instructor-api","timestamp":"2025-05-07T20:44:44.801Z"}
-{"level":"info","message":"::1 - - [07/May/2025:20:44:46 +0000] \"GET /favicon.ico HTTP/1.1\" 404 150 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\"","service":"canvas-instructor-api","timestamp":"2025-05-07T20:44:46.854Z"}

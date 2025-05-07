@@ -1,5 +1,5 @@
-import { Client, Module, ModuleItem, ModuleUpdateAttributes } from "../types";
-import { objectToFormData } from "../helpers";
+import { Client, Module, ModuleItem, ModuleUpdateAttributes } from "./types";
+import { objectToFormData } from "./helpers";
 
 export const modulesApi = (client: Client) => ({
     getAll: (courseId: string) => client.request('get', `courses/${courseId}/modules`),

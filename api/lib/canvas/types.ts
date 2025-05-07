@@ -1,15 +1,14 @@
 export type ValidHTTPMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export interface Client {
-  baseUrl: string;
-  token: string;
-  userId: string;
+  config: CanvasConfig;
   request: (method: ValidHTTPMethod, url: string, body?: any) => Promise<any>;
 }
 
 export interface CanvasApi {
     accessTokenApi: AccessTokenApi;
     assignments: AssignmentsApi;
+    client: Client;
     courses: CoursesApi;
     files: FilesApi;
     modules: ModulesApi;
@@ -17,10 +16,12 @@ export interface CanvasApi {
     submissions: SubmissionsApi;
 }
 
-export interface CanvasApiOptions {
+export interface CanvasConfig {
     baseUrl: string;
     token: string;
-    userId: string;
+    course: {
+        name: string;
+    },
   }
 
 export interface Course {

@@ -1,17 +1,15 @@
-import { accessTokenApi } from "./api/accessToken";
-import { assignmentsApi } from "./api/assignments";
-import { coursesApi } from "./api/courses";
-import { filesApi } from "./api/files";
-import { modulesApi } from "./api/modules";
-import { submissionsApi } from "./api/submissions";
+import { accessTokenApi } from "./accessToken";
+import { assignmentsApi } from "./assignments";
+import { coursesApi } from "./courses";
+import { filesApi } from "./files";
+import { modulesApi } from "./modules";
+import { submissionsApi } from "./submissions";
 import { request } from './helpers';
-import { CanvasApi, CanvasApiOptions, Client } from "./types";
+import { CanvasApi, CanvasConfig, Client } from "./types";
 
-export const createClient = ({ baseUrl, userId, token }: CanvasApiOptions): Client => {
+export const createClient = (config: CanvasConfig): Client => {
   return {
-    baseUrl,
-    token,
-    userId,
+    config,
     request,
   };
 };
@@ -20,6 +18,7 @@ export const createCanvasApi = (client: Client): CanvasApi => {
   return {
     accessTokenApi: accessTokenApi(client),
     assignments: assignmentsApi(client),
+    client: client,
     courses: coursesApi(client),
     files: filesApi(client),
     modules: modulesApi(client),
