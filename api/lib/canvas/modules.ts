@@ -1,4 +1,4 @@
-import { Client, Module, ModuleItem, ModuleUpdateAttributes } from "./types";
+import { Client, ModuleUpdateAttributes } from "./types";
 import { objectToFormData } from "./helpers";
 
 export const modulesApi = (client: Client) => ({
@@ -9,4 +9,5 @@ export const modulesApi = (client: Client) => ({
         return client.request('put', `courses/${courseId}/modules/${moduleId}`, formData);
     },
     items: (courseId: string, moduleId: string) => client.request('get', `courses/${courseId}/modules/${moduleId}/items`),
+    item: (courseId: string, moduleId: string, itemId: string) => client.request('get', `courses/${courseId}/modules/${moduleId}/items/${itemId}`),
 });

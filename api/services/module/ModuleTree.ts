@@ -40,4 +40,8 @@ export default class ModuleTree {
     get blocks() {
         return this.parents.filter(t => t.title.startsWith('Block'))
     }
+
+    json() {
+        return this.tree;
+    }
 }

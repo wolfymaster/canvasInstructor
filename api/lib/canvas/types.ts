@@ -165,6 +165,7 @@ export interface ModulesApi {
     get: (moduleId: string, courseId: string) => Promise<Module>;
     update: (courseId: string, moduleId: string, data: ModuleUpdateAttributes) => Promise<Module>;
     items: (courseId: string, moduleId: string) => Promise<ModuleItem[]>;
+    item: (courseId: string, moduleId: string, itemId: string) => Promise<ModuleItem>;
 }
 
 export interface SubmissionsApi {
@@ -351,5 +352,11 @@ export interface AssignmentUpdatedAttributes  {
 }
 
 export interface ModuleUpdateAttributes {
-
+    title?: string;
+    position?: number;
+    indent?: number;
+    external_url?: string;
+    new_tab?: boolean;
+    published?: boolean;
+    module_id?: string;
 }
