@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -108,4 +109,43 @@ type Lesson struct {
 type ModuleNode struct {
 	Lesson   Lesson   `json:"item"`
 	Children []Lesson `json:"children"`
+}
+
+type UpdateLessonRequest struct {
+	LessonID int    `json:"lessonId"`
+	Action   string `json:"action"`
+	DueDate  string `json:"dueDate,omitempty"`
+}
+
+func (c *Client) UpdateLesson(moduleID int, req UpdateLessonRequest) error {
+	url := fmt.Sprintf("%s/course/%s/modules/%d/lesson", c.baseURL, courseId, moduleID)
+	log := c.log.With(
+		"action", "update_lesson",
+		"url", url,
+		"module_id", moduleID,
+		"lesson_id", req.LessonID,
+		"action", req.Action,
+	)
+	log.Info("Updating lesson")
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		log.Error("Failed to marshal request", "error", err)
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	resp, err := c.client.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Error("Failed to update lesson", "error", err)
+		return fmt.Errorf("failed to update lesson: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Error("Unexpected status code", "status", resp.StatusCode)
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	log.Info("Successfully updated lesson")
+	return nil
 }

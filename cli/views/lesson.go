@@ -140,6 +140,46 @@ func (v *LessonView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case errMsg:
 		log.Error("Error occurred", "error", msg)
 		v.err = msg
+	case PublishLessonMsg:
+		client := api.NewClient("http://localhost:3000")
+		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
+			LessonID: v.Lesson.Lesson.ID,
+			Action:   "publish",
+		})
+		if err != nil {
+			v.err = err
+			return v, nil
+		}
+		return v, func() tea.Msg {
+			return ModuleSelectedMsg{Module: v.Module}
+		}
+	case UnpublishLessonMsg:
+		client := api.NewClient("http://localhost:3000")
+		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
+			LessonID: v.Lesson.Lesson.ID,
+			Action:   "unpublish",
+		})
+		if err != nil {
+			v.err = err
+			return v, nil
+		}
+		return v, func() tea.Msg {
+			return ModuleSelectedMsg{Module: v.Module}
+		}
+	case DateSetMsg:
+		client := api.NewClient("http://localhost:3000")
+		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
+			LessonID: v.Lesson.Lesson.ID,
+			Action:   "setDueDate",
+			DueDate:  msg.Date,
+		})
+		if err != nil {
+			v.err = err
+			return v, nil
+		}
+		return v, func() tea.Msg {
+			return ModuleSelectedMsg{Module: v.Module}
+		}
 	}
 
 	return v, nil
