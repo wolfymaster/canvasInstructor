@@ -166,6 +166,7 @@ export interface ModulesApi {
     update: (courseId: string, moduleId: string, data: ModuleUpdateAttributes) => Promise<Module>;
     items: (courseId: string, moduleId: string) => Promise<ModuleItem[]>;
     item: (courseId: string, moduleId: string, itemId: string) => Promise<ModuleItem>;
+    updateItem: (courseId: string, moduleId: string, itemId: string, data: ModuleUpdateAttributes) => Promise<ModuleItem>;
 }
 
 export interface SubmissionsApi {
@@ -352,6 +353,12 @@ export interface AssignmentUpdatedAttributes  {
 }
 
 export interface ModuleUpdateAttributes {
+    name?: string;
+    position?: number;
+    published?: boolean;
+}
+
+export interface ModuleItemUpdateAttributes {
     title?: string;
     position?: number;
     indent?: number;

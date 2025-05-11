@@ -70,31 +70,39 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
   const lessons = new ModuleTree(moduleItems)
   const lesson = lessons.json().find(l => l.item.id === lessonId);
 
+  if(!lesson) {
+    logger.error('Failed to find lesson', { id: lessonId })
+    return res.json({ status: 'error', message: 'Failed to find lesson' });
+  }
+
   switch (action) {
     case 'publish':
       // publish the module item
-      await canvasClient.modules.update(courseId, moduleId, {
+      await canvasClient.modules.updateItem(courseId, moduleId, String(lesson.item.id), {
         published: true,
       });
       // publish every child (assignment) under the module
       lesson?.children.forEach(async (assignment) => {
-        canvasClient.assignments.update(assignment.id, courseId, {
-          published: true,
-        });
+        const githubRegexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/][a-zA-z0-9.-_]+)(?:\.git)?/;
+        canvasClient.modules.updateItem(courseId, moduleId, String(assignment.id), { published: true });
         // find any Github Assignments and ensure cohort team is added to repository
         const assignmentRepos: [string, string][] = [];
         switch(assignment.type) {
           case 'ExternalUrl':
-            const match = assignment.external_url?.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/);
+            const match = assignment.external_url?.match(githubRegexPattern);
             if(match) {
               assignmentRepos.push([match[1], match[2]]);
             }
             break;  
           case 'Assignment':
             // go get the assignment
-            const assignmentDetails = await canvasClient.assignments.get(assignment.id, courseId);
+            if(!assignment.content_id) {
+              return;
+            }
+            const assignmentDetails = await canvasClient.assignments.get(assignment.content_id, courseId);
+
             // parse the description for github url
-            const matched = assignmentDetails.description?.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/);
+            const matched = assignmentDetails.description?.match(githubRegexPattern);
             if(matched) {
               assignmentRepos.push([matched[1], matched[2]]);
             }
@@ -106,20 +114,19 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
         assignmentRepos.forEach(repo => {
           const [owner, repository] = repo;
           github.addTeamToRepository('fullstackacademy', '2504-FTB-ET-WEB-PT', owner, repository);
+          logger.info('Added GitHub Repository Access', { owner, repository })
         })
       });
       break;
     case 'unpublish':
       // unpublish the module item
-      await canvasClient.modules.update(courseId, moduleId, {
+      await canvasClient.modules.updateItem(courseId, moduleId, String(lesson.item.id), {
         published: false,
       });
 
       // unpublish all children (assignments)
       lesson?.children.forEach(assignment => {
-        canvasClient.assignments.update(assignment.id, courseId, {
-          published: false,
-        });
+        canvasClient.modules.updateItem(courseId, moduleId, String(assignment.id), { published: false });
       });
       break;
     case 'setDueDate':
@@ -129,9 +136,16 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
       }
       // set due date on all assignments
       lesson?.children.forEach(assignment => {
-        canvasClient.assignments.update(assignment.id, courseId, {
-          due_at: dueDate,
-        });
+        switch(assignment.type) {
+          case 'Assignment':
+            if(!assignment.content_id) {
+              return;
+            }
+            canvasClient.assignments.update(assignment.content_id, courseId, {
+              due_at: new Date(`${dueDate}T22:59:00-04:00`),
+            });
+            break;
+        };
       });
       break;
     default:
