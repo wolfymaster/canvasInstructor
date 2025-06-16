@@ -1,0 +1,7 @@
+version: "0.5"
+
+processes:
+    api:
+        command: "bun run start"
+        working_dir: api
+

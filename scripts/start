@@ -1,0 +1,4 @@
+export PORT=10333
+devbox services up -b
+devbox run "cd cli && go run ."
+
