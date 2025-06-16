@@ -1,4 +1,4 @@
-import { Client } from "../types";
+import { Client } from "./types";
 
 export const accessTokenApi = (client: Client) => ({
     create: () => {

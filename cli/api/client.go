@@ -29,6 +29,37 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
+func (c *Client) GetCourseEnrollments() ([]Enrollment, error) {
+	url := fmt.Sprintf("%s/course/%s/enrollments", c.baseURL, courseId)
+	log := c.log.With("action", "get_enrollments", "url", url)
+	log.Info("Fetching enrollments")
+
+	resp, err := c.client.Get(url)
+	if err != nil {
+		log.Error("Failed to fetch enrollments", "error", err)
+		return nil, fmt.Errorf("failed to fetch enrollments: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Error("Unexpected status code", "status", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Status string       `json:"status"`
+		Data   []Enrollment `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Error("Failed to decode response", "error", err)
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Info("Successfully fetched enrollments", "count", len(result.Data))
+	return result.Data, nil
+}
+
 func (c *Client) GetModules() ([]Module, error) {
 	url := fmt.Sprintf("%s/course/%s/modules", c.baseURL, courseId)
 	log := c.log.With("action", "get_modules", "url", url)
@@ -95,6 +126,19 @@ func (c *Client) GetModuleItems(moduleId int) ([]ModuleNode, error) {
 	return result.Data, nil
 }
 
+type Enrollment struct {
+	UserId int             `json:"id"`
+	Type   string          `json:"type"`
+	State  string          `json:"enrollment_state"`
+	Grades EnrollmentGrade `json:"grades"`
+	User   User            `json:"user"`
+}
+
+type EnrollmentGrade struct {
+	Url   string  `json:"html_url"`
+	Score float32 `json:"current_score"`
+}
+
 type Module struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -115,6 +159,11 @@ type UpdateLessonRequest struct {
 	LessonID int    `json:"lessonId"`
 	Action   string `json:"action"`
 	DueDate  string `json:"dueDate,omitempty"`
+}
+
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func (c *Client) UpdateLesson(moduleID int, req UpdateLessonRequest) error {

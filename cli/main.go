@@ -37,6 +37,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Info("Switching to home view")
 		m.currentView = views.NewHomeView()
 		return m, m.currentView.Init()
+	case views.ModulesView:
+		log.Info("Switching to modules view")
+		m.currentView = views.NewModulesView()
+		return m, m.currentView.Init()
+	case views.EnrollmentsView:
+		log.Info("Switching to enrollments view")
+		m.currentView = views.NewEnrollmentView()
+		return m, m.currentView.Init()
 	case views.ModuleSelectedMsg:
 		log.Info("Switching to module view", "module_name", msg.Module.Name)
 		m.currentView = views.NewModuleView(msg.Module)
@@ -47,6 +55,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			"lesson_title", msg.Lesson.Lesson.Title)
 		m.currentView = views.NewLessonView(msg.Lesson, msg.Module)
 		return m, m.currentView.Init()
+	case views.EnrollmentSelectedMsg:
+		log.Info("Enrollment selected", "student_name", msg.Enrollment.User.Name)
+		// Handle enrollment selection - maybe show detailed view?
+		// For now, staying on the same view
 	}
 
 	var cmd tea.Cmd

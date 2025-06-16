@@ -1,8 +1,8 @@
 export type ValidHTTPMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export interface Client {
-  config: CanvasConfig;
-  request: (method: ValidHTTPMethod, url: string, body?: any) => Promise<any>;
+    config: CanvasConfig;
+    request: (method: ValidHTTPMethod, url: string, body?: any) => Promise<any>;
 }
 
 export interface CanvasApi {
@@ -10,6 +10,7 @@ export interface CanvasApi {
     assignments: AssignmentsApi;
     client: Client;
     courses: CoursesApi;
+    enrollments: EnrollmentsApi;
     files: FilesApi;
     modules: ModulesApi;
     request: (method: ValidHTTPMethod, url: string, body?: any) => Promise<any>;
@@ -22,7 +23,7 @@ export interface CanvasConfig {
     course: {
         name: string;
     },
-  }
+}
 
 export interface Course {
     id: number;
@@ -149,6 +150,87 @@ export interface CoursesApi {
     create: (course: Course) => Promise<Course[]>;
     update: (course: Course) => Promise<Course>;
     delete: (courseId: string) => Promise<void>;
+}
+
+export type EnrollmentType = 
+  | 'StudentEnrollment' 
+  | 'TeacherEnrollment' 
+  | 'TaEnrollment' 
+  | 'DesignerEnrollment' 
+  | 'ObserverEnrollment';
+
+export type EnrollmentState = 'active' | 'invited' | 'inactive' | 'completed' | 'rejected';
+
+export interface Enrollment {
+    // Basic enrollment information
+    id: number;
+    course_id: number;
+    course_section_id: number;
+    root_account_id: number;
+    type: EnrollmentType;
+    user_id: number;
+    associated_user_id: number | null;
+    role: string;
+    role_id: number;
+    enrollment_state: EnrollmentState;
+    limit_privileges_to_course_section: boolean;
+
+    // SIS information (optional, only if user has permission)
+    sis_course_id?: string;
+    course_integration_id?: string;
+    section_integration_id?: string;
+    sis_account_id?: string;
+    sis_section_id?: string;
+    sis_user_id?: string;
+    sis_import_id?: number;
+
+    // Timestamps
+    created_at: string; // ISO8601 format
+    updated_at: string; // ISO8601 format
+    start_at: string | null; // ISO8601 format
+    end_at: string | null; // ISO8601 format
+    last_activity_at: string | null; // ISO8601 format
+    last_attended_at: string | null; // ISO8601 format
+
+    // Activity tracking
+    total_activity_time: number; // in seconds
+
+    // URLs
+    html_url: string;
+
+    // Grade information
+    grades: UserGrades;
+    override_grade?: string | null;
+    override_score?: number | null;
+
+    // Unposted grades (only for users with permission)
+    unposted_current_grade?: string | null;
+    unposted_final_grade?: string | null;
+    unposted_current_score?: number | null;
+    unposted_final_score?: number | null;
+
+    // User information
+    user: User;
+
+    // Grading periods (optional, only available in course endpoints for student enrollments)
+    has_grading_periods?: boolean;
+    totals_for_all_grading_periods_option?: boolean;
+    current_grading_period_title?: string | null;
+    current_grading_period_id?: number | null;
+
+    // Current period overrides
+    current_period_override_grade?: string | null;
+    current_period_override_score?: number | null;
+
+    // Current period unposted grades (only for users with permission)
+    current_period_unposted_current_score?: number | null;
+    current_period_unposted_final_score?: number | null;
+    current_period_unposted_current_grade?: string | null;
+    current_period_unposted_final_grade?: string | null;
+}
+
+export interface EnrollmentsApi {
+    get: (courseId: string) => Promise<Enrollment[]>;
 }
 
 export interface FilesApi {
@@ -301,7 +383,7 @@ export interface Submission {
     posted_at?: Date | null; // Use a union type to represent the possibility of it being null or an actual date
     read_status?: 'read' | 'unread'; // Use a union type to represent the possible values of the read status
     redo_request: boolean;
-    attachments: File[]; 
+    attachments: File[];
 }
 
 export interface SubmissionComment {
@@ -323,7 +405,7 @@ export interface MediaComment {
     url: string;
 }
 
-export interface AssignmentUpdatedAttributes  {
+export interface AssignmentUpdatedAttributes {
     name?: string;
     position?: number;
     submission_types?: string[];
@@ -366,4 +448,19 @@ export interface ModuleItemUpdateAttributes {
     new_tab?: boolean;
     published?: boolean;
     module_id?: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  sortable_name: string;
+  short_name: string;
+}
+
+export interface UserGrades {
+  html_url: string;
+  current_score: number | null;
+  current_grade: string | null;
+  final_score: number | null;
+  final_grade: string | null;
 }

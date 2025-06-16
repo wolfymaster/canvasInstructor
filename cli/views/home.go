@@ -2,32 +2,55 @@ package views
 
 import (
 	"fmt"
-	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/wolfy/code/fullstack/canvasInstructor/cli/api"
 	"github.com/wolfy/code/fullstack/canvasInstructor/cli/logger"
 )
 
+type MenuItem struct {
+	Label       string
+	Description string
+	Action      string
+}
+
 type HomeView struct {
-	modules  []api.Module
-	selected int
-	err      error
+	menuItems []MenuItem
+	selected  int
+	err       error
 }
 
 func NewHomeView() *HomeView {
 	log := logger.With("component", "home_view")
 	log.Info("Creating new home view")
+
+	menuItems := []MenuItem{
+		{
+			Label:       "List Modules",
+			Description: "View and manage course modules",
+			Action:      "modules",
+		},
+		{
+			Label:       "Enrollments",
+			Description: "View student enrollments and grades",
+			Action:      "enrollments",
+		},
+		{
+			Label:       "Quit",
+			Description: "Exit the application",
+			Action:      "quit",
+		},
+	}
+
 	return &HomeView{
-		modules:  []api.Module{},
-		selected: 0,
+		menuItems: menuItems,
+		selected:  0,
 	}
 }
 
 func (v *HomeView) Init() tea.Cmd {
 	log := logger.With("component", "home_view")
 	log.Info("Initializing home view")
-	return v.fetchModules
+	return nil
 }
 
 func (v *HomeView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -41,68 +64,47 @@ func (v *HomeView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				v.selected--
 			}
 		case "down", "j":
-			if v.selected < len(v.modules)-1 {
+			if v.selected < len(v.menuItems)-1 {
 				v.selected++
 			}
 		case "enter":
-			if len(v.modules) > 0 {
-				selectedModule := v.modules[v.selected]
-				log.Info("Selected module",
-					"module_id", selectedModule.ID,
-					"module_name", selectedModule.Name)
+			selectedItem := v.menuItems[v.selected]
+			log.Info("Menu item selected", "action", selectedItem.Action, "label", selectedItem.Label)
+
+			switch selectedItem.Action {
+			case "modules":
 				return v, func() tea.Msg {
-					return ModuleSelectedMsg{Module: selectedModule}
+					return ModulesView{}
 				}
+			case "enrollments":
+				return v, func() tea.Msg {
+					return EnrollmentsView{}
+				}
+			case "quit":
+				return v, tea.Quit
 			}
+		case "q", "ctrl+c":
+			return v, tea.Quit
 		}
-	case modulesMsg:
-		log.Info("Received modules", "count", len(msg))
-		v.modules = msg
-	case errMsg:
-		log.Error("Error occurred", "error", msg)
-		v.err = msg
 	}
 
 	return v, nil
 }
 
 func (v *HomeView) View() string {
-	if v.err != nil {
-		return fmt.Sprintf("Error: %v", v.err)
-	}
+	s := "Canvas Instructor CLI\n"
+	s += "====================\n\n"
+	s += "Welcome! Choose an option:\n\n"
 
-	if len(v.modules) == 0 {
-		return "Welcome to Canvas Instructor CLI!\nFetching modules..."
-	}
-
-	s := "Select a module:\n\n"
-	for i, module := range v.modules {
-		cursor := " "
+	for i, item := range v.menuItems {
+		cursor := "  "
 		if v.selected == i {
-			cursor = ">"
+			cursor = "> "
 		}
-		s += fmt.Sprintf("%s %s\n", cursor, module.Name)
+
+		s += fmt.Sprintf("%s%s (%s)\n", cursor, item.Label, item.Description)
 	}
-	s += "\nPress q to quit."
+
+	s += "Navigation: ↑/k (up), ↓/j (down), Enter (select), q (quit)"
 	return s
-}
-
-func (v *HomeView) fetchModules() tea.Msg {
-	log := logger.With("component", "home_view", "action", "fetch_modules")
-	log.Info("Fetching modules from API")
-	port := os.Getenv("PORT")
-	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
-	modules, err := client.GetModules()
-	if err != nil {
-		log.Error("Failed to fetch modules", "error", err)
-		return errMsg(err)
-	}
-	return modulesMsg(modules)
-}
-
-type modulesMsg []api.Module
-type errMsg error
-
-type ModuleSelectedMsg struct {
-	Module api.Module
 }

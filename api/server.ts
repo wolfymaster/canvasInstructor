@@ -153,7 +153,14 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
       break;
   }
   res.json({ status: 'ok' })
-})
+});
+
+app.get('/course/:courseId/enrollments', async (req: Request, res: Response) => {
+  logger.info('Getting grades', { course: req.canvas.client.config.course.name });
+  const { courseId } = req.params;
+  const enrollments = await req.canvas.enrollments.get(courseId);
+  return res.json({ status: 'ok', data: enrollments });
+});
 
 // Start server
 app.listen(port, () => {

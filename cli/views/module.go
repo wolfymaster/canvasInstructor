@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-    "os"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/wolfy/code/fullstack/canvasInstructor/cli/api"
@@ -63,7 +63,7 @@ func (v *ModuleView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			log.Info("Returning to home view")
 			return v, func() tea.Msg {
-				return HomeView{}
+				return ModulesView{}
 			}
 		}
 	case lessonsMsg:
@@ -107,7 +107,7 @@ func (v *ModuleView) fetchLessons() tea.Msg {
 	)
 	log.Info("Fetching lessons")
 
-    port := os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 	lessons, err := client.GetModuleItems(v.module.ID)
 	if err != nil {
