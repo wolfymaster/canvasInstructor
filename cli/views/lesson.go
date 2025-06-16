@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"time"
+    "os"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -141,7 +142,8 @@ func (v *LessonView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Error("Error occurred", "error", msg)
 		v.err = msg
 	case PublishLessonMsg:
-		client := api.NewClient("http://localhost:3000")
+        port := os.Getenv("PORT")
+		client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
 			LessonID: v.Lesson.Lesson.ID,
 			Action:   "publish",
@@ -154,7 +156,8 @@ func (v *LessonView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return ModuleSelectedMsg{Module: v.Module}
 		}
 	case UnpublishLessonMsg:
-		client := api.NewClient("http://localhost:3000")
+        port := os.Getenv("PORT")
+		client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
 			LessonID: v.Lesson.Lesson.ID,
 			Action:   "unpublish",
@@ -167,7 +170,8 @@ func (v *LessonView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return ModuleSelectedMsg{Module: v.Module}
 		}
 	case DateSetMsg:
-		client := api.NewClient("http://localhost:3000")
+        port := os.Getenv("PORT")
+		client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 		err := client.UpdateLesson(v.Module.ID, api.UpdateLessonRequest{
 			LessonID: v.Lesson.Lesson.ID,
 			Action:   "setDueDate",

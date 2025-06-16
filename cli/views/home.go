@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/wolfy/code/fullstack/canvasInstructor/cli/api"
@@ -89,8 +90,8 @@ func (v *HomeView) View() string {
 func (v *HomeView) fetchModules() tea.Msg {
 	log := logger.With("component", "home_view", "action", "fetch_modules")
 	log.Info("Fetching modules from API")
-
-	client := api.NewClient("http://localhost:3000")
+	port := os.Getenv("PORT")
+	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 	modules, err := client.GetModules()
 	if err != nil {
 		log.Error("Failed to fetch modules", "error", err)

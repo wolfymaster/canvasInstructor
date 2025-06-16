@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+    "os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/wolfy/code/fullstack/canvasInstructor/cli/api"
@@ -106,7 +107,8 @@ func (v *ModuleView) fetchLessons() tea.Msg {
 	)
 	log.Info("Fetching lessons")
 
-	client := api.NewClient("http://localhost:3000")
+    port := os.Getenv("PORT")
+	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
 	lessons, err := client.GetModuleItems(v.module.ID)
 	if err != nil {
 		log.Error("Failed to fetch lessons", "error", err)
