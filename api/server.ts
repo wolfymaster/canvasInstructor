@@ -70,53 +70,75 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
   const lessons = new ModuleTree(moduleItems)
   const lesson = lessons.json().find(l => l.item.id === lessonId);
 
-  if(!lesson) {
+  if (!lesson) {
     logger.error('Failed to find lesson', { id: lessonId })
     return res.json({ status: 'error', message: 'Failed to find lesson' });
   }
 
   switch (action) {
     case 'publish':
+      logger.info('Publishing Lesson', { lesson });
       // publish the module item
       await canvasClient.modules.updateItem(courseId, moduleId, String(lesson.item.id), {
         published: true,
       });
+
+      // find any Github Assignments and ensure cohort team is added to repository
+      const assignmentRepos: [string, string][] = [];
+
       // publish every child (assignment) under the module
-      lesson?.children.forEach(async (assignment) => {
+      for (let i = 0; i < lesson?.children.length; ++i) {
+        const assignment = lesson.children[i];
         const githubRegexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/][a-zA-z0-9.-_]+)(?:\.git)?/;
         canvasClient.modules.updateItem(courseId, moduleId, String(assignment.id), { published: true });
-        // find any Github Assignments and ensure cohort team is added to repository
-        const assignmentRepos: [string, string][] = [];
-        switch(assignment.type) {
+
+        switch (assignment.type) {
           case 'ExternalUrl':
             const match = assignment.external_url?.match(githubRegexPattern);
-            if(match) {
+            if (match) {
               assignmentRepos.push([match[1], match[2]]);
             }
-            break;  
+            break;
           case 'Assignment':
             // go get the assignment
-            if(!assignment.content_id) {
+            if (!assignment.content_id) {
+              logger.error('Unable to fetch assignment due to missing content id', { assignment });
               return;
             }
             const assignmentDetails = await canvasClient.assignments.get(assignment.content_id, courseId);
 
             // parse the description for github url
             const matched = assignmentDetails.description?.match(githubRegexPattern);
-            if(matched) {
+            if (matched) {
               assignmentRepos.push([matched[1], matched[2]]);
             }
             break;
         }
+      }
 
-        // Grant access to any assignment repositories
+      // Grant access to any assignment repositories
+      if (assignmentRepos.length) {
+        logger.info('Adding GitHub Repository Access to following repositories', { repositories: assignmentRepos });
         const github = new Github({ apiKey: process.env.GITHUB_TOKEN || '' });
-        assignmentRepos.forEach(repo => {
+        for (let i = 0; i < assignmentRepos.length; ++i) {
+          const repo = assignmentRepos[i];
           const [owner, repository] = repo;
-          github.addTeamToRepository('fullstackacademy', '2504-FTB-ET-WEB-PT', owner, repository);
-          logger.info('Added GitHub Repository Access', { owner, repository })
-        })
-      });
+          // get the repository to ensure that we get the correct one (in the event the name has changed)
+          const ghRepo = await github.getRepository(owner, repository);
+          if(!ghRepo.success) {
+            logger.error('Failed to find repository', { error: ghRepo.message, repository });
+            continue;
+          }
+          const addTeamResult = await github.addTeamToRepository('fullstackacademy', '2504-FTB-ET-WEB-PT', owner, ghRepo.repository.name);
+          if (!addTeamResult.success) {
+            logger.error('Failed to add GitHub Repository', { error: addTeamResult.message, repository });
+            continue;
+          }
+
+          logger.info('Added GitHub Repository Access', { owner, repository });
+          continue;
+        }
+      }
       break;
     case 'unpublish':
       // unpublish the module item
@@ -130,15 +152,15 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
       });
       break;
     case 'setDueDate':
-      if(!dueDate) {
+      if (!dueDate) {
         logger.error('Attempted to set due date without value');
         return res.status(400).json({ status: 'error', message: 'Attempted to set due date without value' });
       }
       // set due date on all assignments
       lesson?.children.forEach(assignment => {
-        switch(assignment.type) {
+        switch (assignment.type) {
           case 'Assignment':
-            if(!assignment.content_id) {
+            if (!assignment.content_id) {
               return;
             }
             canvasClient.assignments.update(assignment.content_id, courseId, {
