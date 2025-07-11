@@ -103,7 +103,8 @@ func (v *ModulesView) fetchModules() tea.Msg {
 	log.Info("Fetching modules from API")
 
 	port := os.Getenv("PORT")
-	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
+	courseId := os.Getenv("COURSE_ID")
+	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port), courseId)
 	modules, err := client.GetModules()
 	if err != nil {
 		log.Error("Failed to fetch modules", "error", err)

@@ -179,7 +179,8 @@ func (v *EnrollmentsView) fetchEnrollments() tea.Msg {
 	log.Info("Fetching enrollments")
 
 	port := os.Getenv("PORT")
-	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
+	courseId := os.Getenv("COURSE_ID")
+	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port), courseId)
 
 	// Fetch enrollments for the specific course
 	// Assuming your API client has a method like GetCourseEnrollments

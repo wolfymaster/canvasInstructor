@@ -11,26 +11,26 @@ import (
 )
 
 type Client struct {
-	baseURL string
-	client  *http.Client
-	log     *slog.Logger
+	baseURL  string
+	courseId string
+	client   *http.Client
+	log      *slog.Logger
 }
 
-const courseId = "1212"
-
-func NewClient(baseURL string) *Client {
+func NewClient(baseURL string, courseId string) *Client {
 	log := logger.With("component", "api_client", "base_url", baseURL)
 	log.Info("Creating new API client")
 
 	return &Client{
-		baseURL: baseURL,
-		client:  &http.Client{},
-		log:     log,
+		baseURL:  baseURL,
+		courseId: courseId,
+		client:   &http.Client{},
+		log:      log,
 	}
 }
 
 func (c *Client) GetCourseEnrollments() ([]Enrollment, error) {
-	url := fmt.Sprintf("%s/course/%s/enrollments", c.baseURL, courseId)
+	url := fmt.Sprintf("%s/course/%s/enrollments", c.baseURL, c.courseId)
 	log := c.log.With("action", "get_enrollments", "url", url)
 	log.Info("Fetching enrollments")
 
@@ -61,7 +61,7 @@ func (c *Client) GetCourseEnrollments() ([]Enrollment, error) {
 }
 
 func (c *Client) GetModules() ([]Module, error) {
-	url := fmt.Sprintf("%s/course/%s/modules", c.baseURL, courseId)
+	url := fmt.Sprintf("%s/course/%s/modules", c.baseURL, c.courseId)
 	log := c.log.With("action", "get_modules", "url", url)
 	log.Info("Fetching modules")
 
@@ -92,7 +92,7 @@ func (c *Client) GetModules() ([]Module, error) {
 }
 
 func (c *Client) GetModuleItems(moduleId int) ([]ModuleNode, error) {
-	url := fmt.Sprintf("%s/course/%s/modules/%d", c.baseURL, courseId, moduleId)
+	url := fmt.Sprintf("%s/course/%s/modules/%d", c.baseURL, c.courseId, moduleId)
 	log := c.log.With(
 		"action", "get_module_items",
 		"url", url,
@@ -167,7 +167,7 @@ type User struct {
 }
 
 func (c *Client) UpdateLesson(moduleID int, req UpdateLessonRequest) error {
-	url := fmt.Sprintf("%s/course/%s/modules/%d/lesson", c.baseURL, courseId, moduleID)
+	url := fmt.Sprintf("%s/course/%s/modules/%d/lesson", c.baseURL, c.courseId, moduleID)
 	log := c.log.With(
 		"action", "update_lesson",
 		"url", url,

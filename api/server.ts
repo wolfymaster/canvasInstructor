@@ -129,7 +129,7 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
             logger.error('Failed to find repository', { error: ghRepo.message, repository });
             continue;
           }
-          const addTeamResult = await github.addTeamToRepository('fullstackacademy', '2504-FTB-ET-WEB-PT', owner, ghRepo.repository.name);
+          const addTeamResult = await github.addTeamToRepository('fullstackacademy', req.canvas.client.config.course.name, owner, ghRepo.repository.name);
           if (!addTeamResult.success) {
             logger.error('Failed to add GitHub Repository', { error: addTeamResult.message, repository });
             continue;

@@ -108,7 +108,8 @@ func (v *ModuleView) fetchLessons() tea.Msg {
 	log.Info("Fetching lessons")
 
 	port := os.Getenv("PORT")
-	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port))
+	courseId := os.Getenv("COURSE_ID")
+	client := api.NewClient(fmt.Sprintf("http://localhost:%s", port), courseId)
 	lessons, err := client.GetModuleItems(v.module.ID)
 	if err != nil {
 		log.Error("Failed to fetch lessons", "error", err)
