@@ -86,9 +86,12 @@ app.post('/course/:courseId/modules/:moduleId/lesson', async (req: Request, res:
       // find any Github Assignments and ensure cohort team is added to repository
       const assignmentRepos: [string, string][] = [];
 
+      // need to combine the lesson + its children
+      const items = [lesson.item, ...lesson?.children];
+
       // publish every child (assignment) under the module
-      for (let i = 0; i < lesson?.children.length; ++i) {
-        const assignment = lesson.children[i];
+      for (let i = 0; i < items.length; ++i) {
+        const assignment = items[i];
         const githubRegexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/][a-zA-z0-9.-_]+)(?:\.git)?/;
         canvasClient.modules.updateItem(courseId, moduleId, String(assignment.id), { published: true });
 
